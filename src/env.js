@@ -5,5 +5,9 @@ export const variables = defineEnvVars({
   DATABASE_URL: {
     static: false,
     schema: (value) => value
+  },
+  SESSION_SECRET: {
+    static: false,
+    schema: (value) => value
   }
 });
