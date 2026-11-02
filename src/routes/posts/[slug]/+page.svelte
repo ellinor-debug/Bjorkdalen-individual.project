@@ -1,5 +1,7 @@
 <script>
   let { data, form } = $props();
+  /** @type {{ error?: string, body?: string } | null} */
+  let actionForm = $derived(form);
 
   /** @param {string} body */
   function trailDetails(body) {
@@ -60,7 +62,7 @@
           {#each data.comments as comment}
             <article class="comment">
               <div class="comment-heading">
-                <h3>{comment.name}</h3>
+                <h3>{comment.username}</h3>
                 {#if comment.created_at}
                   <time datetime={new Date(comment.created_at).toISOString()}>
                     {formatDate(comment.created_at)}
@@ -75,34 +77,32 @@
         <p class="empty-state">No tips or questions yet. Be the first to share one.</p>
       {/if}
 
-      <form class="tip-form" method="POST" action="?/addComment">
-        <h3>Share a tip or ask a question</h3>
-        {#if form?.error}
-          <p class="form-error" role="alert">{form.error}</p>
-        {/if}
+      {#if data.user}
+        <form class="tip-form" method="POST" action="?/addComment">
+          <h3>Share a tip or ask a question</h3>
+          <p class="posting-as">Posting as {data.user.username}</p>
+          {#if actionForm?.error}
+            <p class="form-error" role="alert">{actionForm.error}</p>
+          {/if}
 
-        <label for="name">Your name</label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          value={form?.name ?? ''}
-          required
-          autocomplete="name"
-          aria-invalid={form?.error && !form.name ? 'true' : undefined}
-        />
+          <label for="body">Tip or question</label>
+          <textarea
+            id="body"
+            name="body"
+            rows="4"
+            maxlength="5000"
+            required
+            aria-invalid={actionForm?.error && !actionForm.body ? 'true' : undefined}
+          >{actionForm?.body ?? ''}</textarea>
 
-        <label for="body">Tip or question</label>
-        <textarea
-          id="body"
-          name="body"
-          rows="4"
-          required
-          aria-invalid={form?.error && !form.body ? 'true' : undefined}
-        >{form?.body ?? ''}</textarea>
-
-        <button type="submit">Post tip or question</button>
-      </form>
+          <button type="submit">Post tip or question</button>
+        </form>
+      {:else}
+        <p class="signin-prompt">
+          Sign in to share a tip.
+          <a href="/login">Sign in</a> or <a href="/signup">create an account</a>.
+        </p>
+      {/if}
     </section>
   </article>
 </main>
@@ -262,7 +262,6 @@
     font-weight: 650;
   }
 
-  .tip-form input,
   .tip-form textarea {
     width: 100%;
     border: 1px solid var(--color-border);
@@ -298,6 +297,29 @@
     margin: 0;
     color: var(--color-danger);
     font-weight: 600;
+  }
+
+  .posting-as {
+    margin: -4px 0 0;
+    color: var(--color-text-muted);
+  }
+
+  .signin-prompt {
+    margin: 24px 0 0;
+    padding: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-surface);
+  }
+
+  .signin-prompt a {
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+
+  .signin-prompt a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   @media (max-width: 600px) {

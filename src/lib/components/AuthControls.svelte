@@ -9,11 +9,20 @@
     <button type="submit">Sign out</button>
   </form>
 {:else}
-  <a href="/login">Sign in</a>
+  <div class="auth-links">
+    <a href="/login">Sign in</a>
+    <a href="/signup">Sign up</a>
+  </div>
 {/if}
 
 <style>
   :global(.auth-controls) {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .auth-links {
     display: flex;
     align-items: center;
     gap: 14px;

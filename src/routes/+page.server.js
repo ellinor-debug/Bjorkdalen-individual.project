@@ -1,13 +1,14 @@
 import { getDatabase } from '../lib/server/db.js';
 import { getTimes } from 'suncalc';
 
+// The snow1g point endpoint takes the park coordinates in the URL (longitude 14.20, latitude 60.95).
 const WEATHER_URL =
-  // snow1g/version/1 is SMHI's current point-forecast endpoint; lon/lat identify the park.
   'https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/14.20/lat/60.95/data.json';
 const TIME_ZONE = 'Europe/Stockholm';
 const PARK_LATITUDE = 60.95;
 const PARK_LONGITUDE = 14.2;
 
+// snow1g returns timeSeries entries with `time` and flat `data` fields; 9999 marks missing values.
 /**
  * @typedef {{
  *   air_temperature?: number,
@@ -247,6 +248,7 @@ export async function load({ fetch }) {
     sql`
       SELECT slug, title, summary, body, created_at
       FROM posts
+      WHERE type = 'trail'
       ORDER BY created_at DESC
     `,
     loadWeather(fetch)

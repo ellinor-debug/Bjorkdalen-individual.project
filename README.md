@@ -1,8 +1,11 @@
 # Individual-assignment
 
 The site has a home page with the park forecast and trail cards, an `/about` page with
-visitor information, and a `/community` page listing the latest tips and questions
-from the trails. The shared header, responsive navigation and editable theme colours
+visitor information, and a `/community` page for community discussions and the latest
+tips from the trails. Visitors can create an account at `/signup`, then sign in to
+start discussions, reply, or share trail tips. Community posts have their own
+`/community/[slug]` pages; trail tips remain on their respective `/posts/[slug]` pages.
+The shared header, responsive navigation and editable theme colours
 are in `src/routes/+layout.svelte`. The shared handwritten wordmark and decorative
 watercolour landscape are also rendered from the layout; the illustration lives in
 `src/lib/components/Landscape.svelte`.
