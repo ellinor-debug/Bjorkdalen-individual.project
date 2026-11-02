@@ -1,182 +1,201 @@
 <script>
-  import AuthControls from '../lib/components/AuthControls.svelte';
+  import WeatherIcon from '../lib/components/WeatherIcon.svelte';
 
   let { data } = $props();
 
+  const trailNames = ['Björkslingan', 'Älvstigen', 'Kråkberget'];
+  /** @type {Record<number, string>} */
+  const weatherDescriptions = {
+    1: 'Sunny',
+    2: 'Mostly sunny',
+    3: 'Variable cloud',
+    4: 'Partly cloudy',
+    5: 'Cloudy',
+    6: 'Overcast',
+    7: 'Fog',
+    8: 'Light showers',
+    9: 'Showers',
+    10: 'Heavy showers',
+    11: 'Thunderstorm',
+    12: 'Light sleet showers',
+    13: 'Sleet showers',
+    14: 'Heavy sleet showers',
+    15: 'Light snow showers',
+    16: 'Snow showers',
+    17: 'Heavy snow showers',
+    18: 'Light rain',
+    19: 'Rain',
+    20: 'Heavy rain',
+    21: 'Thunderstorm',
+    22: 'Light sleet',
+    23: 'Sleet',
+    24: 'Heavy sleet',
+    25: 'Light snow',
+    26: 'Snow',
+    27: 'Heavy snow'
+  };
+
+  /** @param {number | null} code */
+  function weatherDescription(code) {
+    return code === null ? 'Forecast unavailable' : weatherDescriptions[code] ?? 'Cloudy';
+  }
+
+  /** @param {string} value */
+  const normalize = (value) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
   /** @param {string} body */
   function trailDetails(body) {
-    const [firstLine, ...rest] = body.split('\n');
+    const firstLine = body.split('\n')[0] ?? '';
     const match = firstLine.match(/^Length:\s*(.+?)\s*·\s*Difficulty:\s*(Easy|Medium|Hard)$/);
-
-    return {
-      length: match?.[1] ?? null,
-      difficulty: match?.[2] ?? null
-    };
+    return { length: match?.[1] ?? null, difficulty: match?.[2] ?? null };
   }
+
+  const trails = $derived.by(() => {
+    const selected = trailNames
+      .map((name) => data.posts.find((post) => normalize(post.title) === normalize(name)))
+      .filter((post) => post !== undefined);
+
+    const remaining = data.posts.filter((post) => !selected.includes(post));
+    return [...selected, ...remaining].slice(0, trailNames.length);
+  });
 </script>
 
 <svelte:head>
-  <title>Björkdalen National Park — Trails in Dalarna</title>
-  <meta
-    name="description"
-    content="Explore forest paths, river walks and mountain views in Björkdalen National Park, Dalarna."
-  />
+  <title>Björkdalen National Park — Dalarna, Sweden</title>
+  <meta name="description" content="Find your quiet in the forests, river paths and hills of Björkdalen National Park." />
 </svelte:head>
 
-<div class="page-shell">
-  <header class="topbar">
-    <a class="brand" href="/" aria-label="Björkdalen National Park home">
-      <span class="brand-mark" aria-hidden="true">B</span>
-      <span>Björkdalen <span class="brand-light">National Park</span></span>
-    </a>
-    <nav class="nav" aria-label="Main navigation">
-      <a href="/">Home</a>
-      <a href="#trails">Trails</a>
-      <div class="auth-controls"><AuthControls user={data.user} /></div>
-    </nav>
-  </header>
-
-  <main>
-    <section class="hero">
+<main class="page-content">
+  <section class="top-section" aria-label="Park welcome and today's weather">
+    <div class="welcome">
       <p class="eyebrow">Dalarna · Sweden</p>
-      <h1>Find your quiet in the wild.</h1>
-      <p class="lede">
-        Wander through birch woodland, follow the river and climb above the valley.
-        Björkdalen’s trails invite you to slow down and explore.
+      <h1>Welcome to Björkdalen</h1>
+      <p>
+        Welcome to Björkdalen National Park, where forest paths invite you to hike at your own pace.
+        Settle into a quiet camping spot beside one of our clear lakes, and keep an eye out for elk,
+        foxes and birds among the pines. With open hills, winding water and peaceful trails, there is
+        something to discover in every season. The park is open all year, whenever you need a little
+        time outdoors.
       </p>
-      <a class="primary" href="#trails">Explore the trails <span aria-hidden="true">↓</span></a>
-      <p class="hero-note">Leave only footprints. Take only good memories.</p>
-    </section>
-
-    <section id="trails" class="trails" aria-labelledby="trails-title">
-      <div class="section-head">
-        <p class="eyebrow">Choose your path</p>
-        <h2 id="trails-title">Trails</h2>
-        <p class="section-intro">From an easy lakeside loop to a rewarding summit climb.</p>
-      </div>
-
-      <div class="trail-grid">
-        {#each data.posts as post (post.slug)}
-          {@const details = trailDetails(post.body)}
-          <article class="trail-card">
-            <p class="meta">Björkdalen National Park</p>
-            <h3><a href={`/posts/${post.slug}`}>{post.title}</a></h3>
-            <p class="excerpt">{post.summary}</p>
-            <div class="trail-footer">
-              <div class="trail-facts">
-                {#if details.length}
-                  <span>{details.length}</span>
-                {/if}
-                {#if details.difficulty}
-                  <span class={`difficulty ${details.difficulty.toLowerCase()}`}>
-                    {details.difficulty}
-                  </span>
-                {/if}
-              </div>
-              <a class="read-link" href={`/posts/${post.slug}`}>
-                Trail details <span aria-hidden="true">→</span>
-              </a>
+    </div>
+    <section class="weather panel" aria-labelledby="weather-title">
+      <div class="weather-heading">
+        <div class="weather-title-group">
+          <p class="eyebrow">Plan a gentle day outdoors</p>
+          <h2 id="weather-title">Weather in the park</h2>
+        </div>
+        {#if data.weather}
+          <div class="current-weather">
+            <span class="current-icon">
+              <WeatherIcon
+                symbolCode={data.weather.current?.symbolCode ?? null}
+                isNight={data.weather.current?.isNight ?? false}
+              />
+            </span>
+            <div class="current-details">
+              <p class="current-temperature">
+                {data.weather.current ? data.weather.current.temperature : '—'}<span>°C</span>
+              </p>
+              <p class="current-description">Today · {weatherDescription(data.weather.current?.symbolCode ?? null)}</p>
             </div>
-          </article>
-        {/each}
+          </div>
+        {/if}
       </div>
+      {#if data.weather}
+        <div class="timeline-heading">
+          <h3>Next 24 hours</h3>
+        </div>
+        <div class="hourly-forecast" aria-label="Forecast for the next 24 hours">
+          {#each data.weather.timeline as entry (`${entry.type}-${entry.time}`)}
+            {#if entry.type === 'sunrise' || entry.type === 'sunset'}
+              <div class="sun-marker">{entry.label}</div>
+            {:else}
+              <div class="hour">
+                <span>{entry.label}</span>
+                <span class="hour-icon">
+                  <WeatherIcon symbolCode={entry.symbolCode} isNight={entry.isNight} />
+                </span>
+                <strong>{entry.temperature === null ? '—' : `${entry.temperature}°`}</strong>
+              </div>
+            {/if}
+          {/each}
+          {#if data.weather.timeline.length === 0}
+            <p class="no-hours">No upcoming forecast times available.</p>
+          {/if}
+        </div>
+        <div class="daily-forecast" aria-label="Forecast for the next three days">
+          {#each data.weather.days as day (day.date)}
+            <div class="daily">
+              <span>{day.label}</span>
+              <span class="daily-icon">
+                <WeatherIcon symbolCode={day.symbolCode} isNight={false} />
+              </span>
+              <strong><span class="high">{day.max === null ? '—' : `${day.max}°`}</span><span class="low">{day.min === null ? '—' : `${day.min}°`}</span></strong>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <p class="weather-error">The park forecast is temporarily unavailable. Please try again later.</p>
+      {/if}
     </section>
-  </main>
+  </section>
 
-  <footer>
-    <p>Björkdalen National Park · Dalarna, Sweden</p>
-    <p>Respect nature and help keep the trails wild.</p>
-  </footer>
-</div>
+  <section id="trails" class="trails" aria-labelledby="trails-title">
+    <div class="section-title">
+      <p class="eyebrow">Take the long way round</p>
+      <h2 id="trails-title">Find your trail</h2>
+    </div>
+    <div class="trail-grid">
+      {#each trails as post (post.slug)}
+        {@const details = trailDetails(post.body)}
+        <a class="trail-card" href={`/posts/${post.slug}`}>
+          <p class="trail-label">Björkdalen National Park</p>
+          <h3>{post.title}</h3>
+          <p class="summary">{post.summary}</p>
+          <div class="trail-facts">
+            {#if details.length}<span>{details.length}</span>{/if}
+            {#if details.difficulty}
+              <span class={`difficulty ${details.difficulty.toLowerCase()}`}>{details.difficulty}</span>
+            {/if}
+          </div>
+          <span class="trail-link">Explore trail <span aria-hidden="true">→</span></span>
+        </a>
+      {/each}
+    </div>
+  </section>
+</main>
 
 <style>
-  :global(*) {
-    box-sizing: border-box;
-  }
-
-  :global(body) {
+  .page-content {
+    width: 100%;
     margin: 0;
-    background: #f5f4ec;
-    color: #23372a;
-    font-family: Inter, 'Segoe UI', sans-serif;
+    padding: 32px 4vw 0;
   }
 
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  a:focus-visible {
-    outline: 3px solid #718a55;
-    outline-offset: 4px;
-  }
-
-  .page-shell {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 28px 28px 36px;
-  }
-
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 8px 0 24px;
-    border-bottom: 1px solid #d8d8c9;
-  }
-
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 750;
-    letter-spacing: 0.01em;
-  }
-
-  .brand-mark {
+  .top-section {
     display: grid;
-    width: 34px;
-    height: 34px;
-    place-items: center;
-    border-radius: 50%;
-    background: #355b3d;
-    color: white;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: stretch;
+    gap: 52px;
   }
 
-  .brand-light {
-    color: #657160;
-    font-weight: 500;
+  .welcome {
+    align-self: start;
+    padding: 0;
   }
 
-  .nav {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    color: #4a5a4b;
+  .welcome .eyebrow {
     font-size: 0.95rem;
   }
 
-  .nav > a:hover {
-    color: #2f633a;
-  }
-
-  .hero {
-    max-width: 760px;
-    padding: 78px 0 82px;
-  }
-
   .eyebrow,
-  .meta {
-    color: #507446;
+  .trail-label {
+    margin: 0 0 6px;
+    color: var(--color-accent);
     font-size: 0.78rem;
-    font-weight: 750;
-    letter-spacing: 0.12em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-  }
-
-  .eyebrow {
-    margin: 0 0 16px;
   }
 
   h1,
@@ -186,209 +205,396 @@
     margin-top: 0;
   }
 
-  h1 {
-    max-width: 700px;
-    margin-bottom: 20px;
+  h1,
+  h2 {
+    color: var(--color-heading);
     font-family: Georgia, 'Times New Roman', serif;
-    font-size: clamp(2.8rem, 7vw, 5.5rem);
     font-weight: 500;
-    letter-spacing: -0.055em;
-    line-height: 0.99;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
   }
 
-  .lede {
-    max-width: 620px;
-    margin-bottom: 28px;
-    color: #536052;
-    font-size: 1.12rem;
-    line-height: 1.75;
+  h1 {
+    margin-bottom: 14px;
+    font-size: clamp(2.4rem, 4vw, 3.4rem);
   }
 
-  .primary {
-    display: inline-flex;
-    min-height: 46px;
-    align-items: center;
-    gap: 12px;
-    padding: 0 20px;
-    border-radius: 999px;
-    background: #355b3d;
-    color: white;
-    font-weight: 650;
+  .welcome > p:last-child {
+    margin-bottom: 0;
+    color: var(--color-text-muted);
+    font-size: 1.15rem;
+    line-height: 1.55;
   }
 
-  .primary:hover {
-    background: #284b31;
+  .panel,
+  .trail-card {
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+    background: var(--color-surface);
   }
 
-  .hero-note {
-    margin: 16px 0 0;
-    color: #777a67;
-    font-size: 0.9rem;
-    font-style: italic;
+  .weather {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
   }
 
-  .trails {
-    padding-top: 32px;
-    border-top: 1px solid #d8d8c9;
+  .section-title {
+    margin-bottom: 12px;
   }
 
-  .section-head {
-    margin-bottom: 24px;
-  }
-
-  .section-head .eyebrow {
-    margin-bottom: 8px;
+  .section-title .eyebrow {
+    margin-bottom: 4px;
   }
 
   h2 {
-    margin-bottom: 8px;
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: clamp(2rem, 4vw, 2.9rem);
-    font-weight: 500;
-    letter-spacing: -0.04em;
+    margin-bottom: 0;
+    font-size: clamp(1.35rem, 2vw, 1.75rem);
   }
 
-  .section-intro {
+  .weather-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 8px;
+  }
+
+  .weather-title-group {
+    min-width: 0;
+  }
+
+  .current-weather {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    margin-right: clamp(0px, 2vw, 24px);
+  }
+
+  .current-icon {
+    font-size: 76px;
+    line-height: 1;
+  }
+
+  .current-details {
+    text-align: right;
+  }
+
+  .current-temperature {
+    margin: 0;
+    color: var(--color-heading);
+    font-size: 2.3rem;
+    font-weight: 650;
+    line-height: 1.1;
+  }
+
+  .current-temperature span {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .current-description {
+    margin: 1px 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .timeline-heading {
+    display: flex;
+    align-items: baseline;
+    margin-top: 4px;
     margin-bottom: 0;
-    color: #64705f;
+  }
+
+  .timeline-heading h3 {
+    margin: 0;
+    color: var(--color-heading);
+    font-size: 1rem;
+  }
+
+  .hourly-forecast {
+    display: flex;
+    min-width: 0;
+    flex: 0 0 auto;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 24px;
+    overflow-x: auto;
+    padding: 5px 0 8px;
+    scrollbar-color: var(--color-accent) var(--color-surface-muted);
+    scrollbar-width: thin;
+  }
+
+  .hour {
+    display: grid;
+    min-width: 48px;
+    justify-items: center;
+    gap: 3px;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+
+  .hour-icon {
+    font-size: 38px;
+    line-height: 1.2;
+  }
+
+  .sun-marker {
+    flex: 0 0 auto;
+    align-self: center;
+    padding: 5px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface-muted);
+    color: var(--color-heading);
+    font-size: 0.75rem;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  .daily-icon {
+    font-size: 48px;
+    line-height: 1.2;
+  }
+
+  .daily > span:first-child {
+    font-weight: 700;
+  }
+
+  .hour strong,
+  .daily strong {
+    color: var(--color-heading);
+    font-size: 1rem;
+  }
+
+  .hour strong {
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+
+  .no-hours {
+    margin: 0;
+    align-self: center;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .daily-forecast {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .daily {
+    display: grid;
+    min-width: 0;
+    justify-items: center;
+    gap: 5px;
+    padding: 9px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  .daily strong {
+    display: flex;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .daily strong .low {
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .weather-error {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+
+  .trails {
+    margin-top: 52px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .trails .section-title {
+    margin-bottom: 10px;
+  }
+
+  .trails .section-title h2 {
+    font-size: clamp(1.75rem, 2vw, 1.75rem);
   }
 
   .trail-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
+    gap: 14px;
   }
 
   .trail-card {
     display: flex;
-    min-height: 250px;
+    min-height: 180px;
     flex-direction: column;
-    padding: 22px;
-    border: 1px solid #dedecf;
-    border-radius: 18px;
-    background: #fffef9;
+    padding: 15px 17px;
+    color: inherit;
+    transition:
+      transform 160ms ease,
+      box-shadow 160ms ease,
+      border-color 160ms ease;
   }
 
-  .meta {
-    margin-bottom: 13px;
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
+  .trail-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-accent);
+    box-shadow: 0 10px 24px var(--color-shadow);
   }
 
-  h3 {
-    margin-bottom: 10px;
+  .trail-card:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 4px;
+  }
+
+  .trail-label {
+    margin-bottom: 6px;
+    font-size: 0.72rem;
+  }
+
+  .trail-card h3 {
+    margin-bottom: 5px;
+    color: var(--color-heading);
     font-family: Georgia, 'Times New Roman', serif;
-    font-size: 1.55rem;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-    line-height: 1.2;
+    font-size: 1.75rem;
+    line-height: 1.15;
   }
 
-  h3 a:hover,
-  .read-link:hover {
-    color: #507446;
-  }
-
-  .excerpt {
-    margin-bottom: 22px;
-    color: #596456;
-    line-height: 1.65;
-  }
-
-  .trail-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: auto;
-    font-size: 0.84rem;
+  .summary {
+    margin-bottom: 10px;
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    line-height: 1.45;
   }
 
   .trail-facts {
     display: flex;
     align-items: center;
-    gap: 9px;
-    color: #536052;
+    gap: 10px;
+    margin-top: auto;
+    color: var(--color-text-muted);
+    font-size: 1.05rem;
   }
 
   .difficulty {
-    padding: 4px 9px;
+    padding: 4px 10px;
     border-radius: 999px;
-    font-size: 0.74rem;
+    font-size: 1rem;
     font-weight: 700;
   }
 
   .difficulty.easy {
-    background: #e0efdc;
-    color: #2d6937;
+    background: var(--color-easy-bg);
+    color: var(--color-easy-text);
   }
 
   .difficulty.medium {
-    background: #fae9cf;
-    color: #92500b;
+    background: var(--color-medium-bg);
+    color: var(--color-medium-text);
   }
 
   .difficulty.hard {
-    background: #f4dddd;
-    color: #a3312c;
+    background: var(--color-hard-bg);
+    color: var(--color-hard-text);
   }
 
-  .read-link {
-    color: #355b3d;
-    font-weight: 650;
-    white-space: nowrap;
-  }
-
-  footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    margin-top: 48px;
-    padding-top: 20px;
-    border-top: 1px solid #d8d8c9;
-    color: #657160;
-    font-size: 0.85rem;
-  }
-
-  footer p {
-    margin-bottom: 0;
+  .trail-link {
+    align-self: flex-start;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--color-accent);
+    font-weight: 700;
   }
 
   @media (max-width: 760px) {
-    .page-shell {
-      padding: 20px 18px 28px;
+    .page-content {
+      padding: 24px 18px 0;
     }
 
-    .hero {
-      padding: 54px 0 58px;
+    .top-section {
+      grid-template-columns: 1fr;
+      gap: 24px;
     }
 
-    .trail-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 520px) {
-    .topbar {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .nav {
-      flex-wrap: wrap;
-      gap: 14px;
+    .welcome {
+      padding: 0;
     }
 
     .trail-grid {
       grid-template-columns: 1fr;
     }
+  }
 
-    .trail-card {
-      min-height: unset;
+  @media (max-width: 520px) {
+    .weather {
+      padding: 18px;
     }
 
-    footer {
-      flex-direction: column;
+    .hourly-forecast {
+      justify-content: flex-start;
+      min-height: 80px;
+    }
+
+    .trails {
+      margin-top: 32px;
+    }
+
+    .daily-forecast {
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 460px) {
+    .weather {
+      padding: 16px;
+    }
+
+    .weather-heading {
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .current-temperature {
+      font-size: 1.9rem;
+    }
+
+    .current-temperature span {
+      font-size: 0.9rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+    }
+
+    .daily-forecast {
+      gap: 5px;
+    }
+
+    .daily {
+      padding: 10px 4px;
+      font-size: 0.78rem;
+    }
+
+    .daily strong {
+      gap: 5px;
+      font-size: 0.9rem;
     }
   }
 </style>

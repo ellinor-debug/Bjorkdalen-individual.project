@@ -26,6 +26,7 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"dependencies": {
-		"@neondatabase/serverless": "^1.2.0"
+		"@neondatabase/serverless": "^1.2.0",
+		"suncalc": "^2.1.1"
 	}
 }

@@ -20,23 +20,29 @@
   }
 
   .username {
-    color: #62685f;
-    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    font-size: 1rem;
   }
 
   button {
     border: 0;
     padding: 0;
     background: none;
-    color: #3e6047;
+    color: var(--color-accent);
     cursor: pointer;
     font: inherit;
     font-weight: 650;
   }
 
   a {
-    color: #3e6047;
+    color: var(--color-accent);
     font-weight: 650;
     text-decoration: none;
+  }
+
+  a:hover,
+  button:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
   }
 </style>
