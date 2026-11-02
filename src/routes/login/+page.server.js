@@ -7,15 +7,30 @@ import {
   verifyPassword
 } from '../../lib/server/auth.js';
 
-export function load({ locals }) {
-  if (locals.user) redirect(303, '/');
+/** @param {string | null} value */
+function safeReturnTo(value) {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) {
+    return '/';
+  }
+
+  const parsed = new URL(value, 'https://park.local');
+  return parsed.origin === 'https://park.local'
+    ? `${parsed.pathname}${parsed.search}${parsed.hash}`
+    : '/';
+}
+
+export function load({ locals, url }) {
+  if (locals.user) redirect(303, safeReturnTo(url.searchParams.get('returnTo')));
+
+  return { returnTo: safeReturnTo(url.searchParams.get('returnTo')) };
 }
 
 export const actions = {
-  default: async ({ request, cookies, locals }) => {
-    if (locals.user) redirect(303, '/');
-
+  default: async ({ request, cookies, locals, url }) => {
     const formData = await request.formData();
+    const returnTo = safeReturnTo(String(formData.get('returnTo') ?? url.searchParams.get('returnTo')));
+    if (locals.user) redirect(303, returnTo);
+
     const username = String(formData.get('username') ?? '').trim();
     const password = String(formData.get('password') ?? '');
 
@@ -43,6 +58,6 @@ export const actions = {
       maxAge: SESSION_MAX_AGE
     });
 
-    redirect(303, '/');
+    redirect(303, returnTo);
   }
 };

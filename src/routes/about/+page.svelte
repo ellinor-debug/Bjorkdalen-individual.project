@@ -4,8 +4,7 @@
 </svelte:head>
 
 <main class="content">
-  <p class="eyebrow">Dalarna · Sweden</p>
-  <h1>A place to slow down</h1>
+  <h1>About the park</h1>
   <p class="intro">
     Björkdalen National Park is a quiet corner of Dalarna, shaped by northern forests,
     a winding river and rounded hills. It is a place to notice the small things and
@@ -13,10 +12,10 @@
   </p>
 
   <section class="info-card">
-    <h2>Explore gently</h2>
+    <h2>Walking and access</h2>
     <p>
       Walk beneath birch and pine, listen to the river, pause for a picnic or follow a
-      trail up to a wide view over the valley. The three marked routes offer something
+      trail up to a wide view over the valley. The eight marked routes offer something
       for an easy afternoon as well as a longer day outside.
     </p>
   </section>
@@ -37,15 +36,6 @@
     max-width: 820px;
     margin: 0 auto;
     padding: 64px 28px 76px;
-  }
-
-  .eyebrow {
-    margin: 0 0 10px;
-    color: var(--color-accent);
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
   }
 
   h1,

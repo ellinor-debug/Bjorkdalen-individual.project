@@ -4,7 +4,7 @@
   import AuthControls from '../lib/components/AuthControls.svelte';
   import Landscape from '../lib/components/Landscape.svelte';
 
-  /** @type {{ children: import('svelte').Snippet, data: { user: { id: string, username: string } | null } }} */
+  /** @type {{ children: import('svelte').Snippet, data: { user: { id: string, username: string, role: 'admin' | 'member' } | null } }} */
   let { children, data } = $props();
   let menuOpen = $state(false);
 </script>
@@ -46,6 +46,9 @@
         <a href="/about" onclick={() => (menuOpen = false)}>About the park</a>
         <a href="/community" onclick={() => (menuOpen = false)}>Community</a>
         <a href="/trails" onclick={() => (menuOpen = false)}>Trails</a>
+        {#if data.user?.role === 'admin'}
+          <a href="/admin" onclick={() => (menuOpen = false)}>Admin</a>
+        {/if}
         <div class="header-auth"><AuthControls user={data.user} /></div>
       </nav>
     </div>
@@ -66,7 +69,7 @@
 
   <footer class="site-footer">
     <p>Björkdalen National Park · Dalarna, Sweden</p>
-    <p>Leave only footprints. Take only good memories.</p>
+    <p>Visitor centre: open daily 9–16 · Parking at Björkdalen entrance · Emergency: 112</p>
   </footer>
 </div>
 

@@ -10,14 +10,18 @@ export async function handle({ event, resolve }) {
     if (userId) {
       const sql = getDatabase();
       const [user] = await sql`
-        SELECT id, username
+        SELECT id, username, role
         FROM users
         WHERE id = ${userId}
         LIMIT 1
       `;
 
       if (user) {
-        event.locals.user = { id: String(user.id), username: user.username };
+        event.locals.user = {
+          id: String(user.id),
+          username: user.username,
+          role: user.role
+        };
       } else {
         event.cookies.delete(SESSION_COOKIE_NAME, { path: '/' });
       }

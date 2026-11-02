@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getDatabase } from '../../../lib/server/db.js';
+import { requireAdmin } from '../../../lib/server/auth.js';
 
 // Find a trail and its visitor tips by slug.
 export async function load({ params, locals }) {
@@ -17,7 +18,8 @@ export async function load({ params, locals }) {
   }
 
   const comments = await sql`
-    SELECT COALESCE(users.username, comments.name) AS username, comments.body, comments.created_at
+    SELECT comments.id, COALESCE(users.username, comments.name) AS username,
+      users.role, comments.body, comments.created_at
     FROM comments
     LEFT JOIN users ON users.id = comments.user_id
     WHERE comments.post_id = ${post.id}
@@ -61,6 +63,23 @@ export const actions = {
       VALUES (${post.id}, ${locals.user.id}, ${locals.user.username}, ${body})
     `;
 
+    redirect(303, `/posts/${params.slug}#tips`);
+  },
+
+  deleteComment: async ({ request, params, locals }) => {
+    requireAdmin(locals);
+    const formData = await request.formData();
+    const commentId = String(formData.get('commentId') ?? '');
+    if (!commentId) return fail(400, { error: 'Comment not found.' });
+
+    const sql = getDatabase();
+    const [deleted] = await sql`
+      DELETE FROM comments
+      WHERE id = ${commentId}
+        AND post_id = (SELECT id FROM posts WHERE slug = ${params.slug} AND type = 'trail')
+      RETURNING id
+    `;
+    if (!deleted) error(404, 'Comment not found.');
     redirect(303, `/posts/${params.slug}#tips`);
   }
 };

@@ -73,7 +73,6 @@
 <main class="page-content">
   <section class="top-section" aria-label="Park welcome and today's weather">
     <div class="welcome">
-      <p class="eyebrow">Dalarna · Sweden</p>
       <h1>Welcome to Björkdalen</h1>
       <p>
         Welcome to Björkdalen National Park, where forest paths invite you to hike at your own pace.
@@ -86,8 +85,7 @@
     <section class="weather panel" aria-labelledby="weather-title">
       <div class="weather-heading">
         <div class="weather-title-group">
-          <p class="eyebrow">Plan a gentle day outdoors</p>
-          <h2 id="weather-title">Weather in the park</h2>
+          <h2 id="weather-title">Weather</h2>
         </div>
         {#if data.weather}
           <div class="current-weather">
@@ -147,8 +145,7 @@
 
   <section id="trails" class="trails" aria-labelledby="trails-title">
     <div class="section-title">
-      <p class="eyebrow">Take the long way round</p>
-      <h2 id="trails-title">Find your trail</h2>
+      <h2 id="trails-title">Trails</h2>
       <p class="difficulty-hint">Choose one or more difficulty levels to find your kind of adventure.</p>
     </div>
     <div class="difficulty-grid" aria-label="Select trail difficulty">
@@ -188,20 +185,6 @@
     padding: 0;
   }
 
-  .welcome .eyebrow {
-    font-size: 0.95rem;
-  }
-
-  .eyebrow,
-  .trail-label {
-    margin: 0 0 6px;
-    color: var(--color-accent);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
   h1,
   h2,
   h3,
@@ -230,25 +213,19 @@
     line-height: 1.55;
   }
 
-  .panel {
-    border: 1px solid var(--color-border);
-    border-radius: 18px;
-    background: var(--color-surface);
-  }
-
   .weather {
     min-width: 0;
     display: flex;
     flex-direction: column;
     padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
   }
 
   .section-title {
     margin-bottom: 12px;
-  }
-
-  .section-title .eyebrow {
-    margin-bottom: 4px;
   }
 
   h2 {

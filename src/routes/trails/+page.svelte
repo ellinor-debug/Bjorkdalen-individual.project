@@ -1,6 +1,7 @@
 <script>
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
+  import { trailPracticalInfo } from '../../lib/trail-practical-info.js';
 
   let { data } = $props();
 
@@ -54,6 +55,11 @@
   function formatLength(length) {
     return length === null ? '—' : `${Number(length)} km`;
   }
+
+  /** @param {string} slug */
+  function trailInfo(slug) {
+    return trailPracticalInfo[/** @type {keyof typeof trailPracticalInfo} */ (slug)];
+  }
 </script>
 
 <svelte:head>
@@ -63,9 +69,9 @@
 
 <main class="content">
   <header class="page-heading">
-    <p class="eyebrow">Take the long way round</p>
-    <h1>Explore the trails</h1>
+    <h1>Trails</h1>
     <p>Find a path that suits your day, from an accessible lakeside boardwalk to a demanding ridge route.</p>
+    <p class="example-note">Times, elevation gains and trail colours are examples. Confirm details with park staff or on-site signs.</p>
   </header>
 
   <section class="filters" aria-label="Filter trails by difficulty">
@@ -93,14 +99,19 @@
   {#if filteredTrails.length}
     <div class="trail-grid">
       {#each filteredTrails as trail (trail.slug)}
+        {@const info = trailInfo(trail.slug)}
         <a class="trail-card" href={`/posts/${trail.slug}`}>
           <div class="card-heading">
             <h2>{trail.title}</h2>
             <span class={`difficulty ${trail.difficulty}`}>{difficultyLabel(trail.difficulty)}</span>
           </div>
-          <p class="length">{formatLength(trail.length_km)}</p>
+          <dl class="trail-facts">
+            <div><dt>Length</dt><dd>{formatLength(trail.length_km)}</dd></div>
+            <div><dt>Time</dt><dd>{info?.time ?? 'Check locally'}</dd></div>
+            <div><dt>Elevation gain</dt><dd>{info?.elevation ?? 'Check locally'}</dd></div>
+            <div><dt>Trail marking</dt><dd>{info?.marking ?? 'Check trail signs'}</dd></div>
+          </dl>
           <p class="description">{trailDescription(trail.summary, trail.body)}</p>
-          <span class="trail-link">Trail details <span aria-hidden="true">→</span></span>
         </a>
       {/each}
     </div>
@@ -121,14 +132,6 @@
     margin-bottom: 30px;
   }
 
-  .eyebrow {
-    margin: 0 0 8px;
-    color: var(--color-accent);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
   h1,
   h2 {
     color: var(--color-heading);
@@ -147,6 +150,11 @@
     margin: 0;
     color: var(--color-text-muted);
     font-size: 1.1rem;
+  }
+
+  .page-heading .example-note {
+    margin-top: 8px;
+    font-size: 0.9rem;
   }
 
   .filters {
@@ -248,21 +256,17 @@
     display: flex;
     min-width: 0;
     flex-direction: column;
-    padding: 22px;
+    padding: 18px;
     border: 1px solid var(--color-border);
-    border-radius: 16px;
+    border-radius: 8px;
     background: var(--color-surface);
     color: inherit;
     transition:
-      transform 160ms ease,
-      box-shadow 160ms ease,
       border-color 160ms ease;
   }
 
   .trail-card:hover {
-    transform: translateY(-3px);
     border-color: var(--color-accent);
-    box-shadow: 0 10px 24px var(--color-shadow);
   }
 
   .card-heading {
@@ -286,22 +290,35 @@
     line-height: 1.3;
   }
 
-  .length {
-    margin: 8px 0 10px;
+  .trail-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 14px;
+    margin: 16px 0;
+    padding: 12px 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .trail-facts div {
+    min-width: 0;
+  }
+
+  .trail-facts dt {
+    color: var(--color-text-muted);
+    font-size: 0.84rem;
+  }
+
+  .trail-facts dd {
+    margin: 0;
     color: var(--color-heading);
-    font-weight: 700;
+    font-weight: 650;
   }
 
   .description {
     margin: 0 0 18px;
     color: var(--color-text-muted);
     line-height: 1.55;
-  }
-
-  .trail-link {
-    margin-top: auto;
-    color: var(--color-accent);
-    font-weight: 700;
   }
 
   .empty-state {

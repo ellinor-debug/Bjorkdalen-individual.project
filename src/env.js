@@ -9,5 +9,9 @@ export const variables = defineEnvVars({
   SESSION_SECRET: {
     static: false,
     schema: (value) => value
+  },
+  OPENROUTER_API_KEY: {
+    static: false,
+    schema: (value) => value
   }
 });

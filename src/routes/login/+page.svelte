@@ -1,5 +1,5 @@
 <script>
-  let { form } = $props();
+  let { form, data } = $props();
 </script>
 
 <svelte:head>
@@ -8,6 +8,7 @@
 
 <main class="content">
   <form method="POST" class="login-form">
+    <input type="hidden" name="returnTo" value={data.returnTo} />
     <p class="eyebrow">Welcome back</p>
     <h1>Sign in</h1>
 

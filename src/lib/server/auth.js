@@ -1,9 +1,20 @@
 import { SESSION_SECRET } from '$app/env/private';
+import { error, redirect } from '@sveltejs/kit';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export { hashPassword, verifyPassword } from './password.js';
 export const SESSION_COOKIE_NAME = 'session';
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+
+/** @param {App.Locals} locals @param {{ redirectTo?: string }} [options] */
+export function requireAdmin(locals, options = {}) {
+  if (!locals.user || locals.user.role !== 'admin') {
+    if (options.redirectTo) redirect(303, options.redirectTo);
+    error(403, 'Administrator access required.');
+  }
+
+  return locals.user;
+}
 
 function getSessionSecret() {
   if (!SESSION_SECRET || SESSION_SECRET.length < 32) {
