@@ -1,0 +1,9 @@
+import { defineEnvVars } from '@sveltejs/kit/env';
+
+// Keep DATABASE_URL private and read it dynamically from the deployment environment.
+export const variables = defineEnvVars({
+  DATABASE_URL: {
+    static: false,
+    schema: (value) => value
+  }
+});

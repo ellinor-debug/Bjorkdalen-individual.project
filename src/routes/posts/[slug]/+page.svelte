@@ -1,6 +1,16 @@
 <script>
   // Svelte 5 props receive the article selected by the route's load function.
   let { data } = $props();
+
+  // Format the database timestamp as a date that is easy to read.
+  /** @param {string | Date} date */
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
 </script>
 
 <svelte:head>
@@ -20,19 +30,15 @@
   <main>
     <article class="article">
       <a class="back-link mobile-back" href="/">← Back to all articles</a>
-      <p class="meta">{data.post.category} · {data.post.readTime}</p>
+      <p class="meta">Article</p>
       <h1>{data.post.title}</h1>
-      <p class="excerpt">{data.post.excerpt}</p>
-      <time datetime={data.post.date}>
-        {new Date(`${data.post.date}T12:00:00`).toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        })}
+      <p class="excerpt">{data.post.summary}</p>
+      <time datetime={new Date(data.post.created_at).toISOString()}>
+        {formatDate(data.post.created_at)}
       </time>
 
       <div class="article-body">
-        {#each data.post.content as paragraph}
+        {#each data.post.body.split(/\n\s*\n/) as paragraph}
           <p>{paragraph}</p>
         {/each}
       </div>

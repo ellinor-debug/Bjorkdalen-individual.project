@@ -1,6 +1,16 @@
 <script>
   // Svelte 5 props receive the data returned by the route's load function.
   let { data } = $props();
+
+  // Format the database timestamp as a date that is easy to read.
+  /** @param {string | Date} date */
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
 </script>
 
 <svelte:head>
@@ -43,16 +53,12 @@
       <div class="post-grid">
         {#each data.posts as post (post.slug)}
           <article class="post-card">
-            <p class="meta">{post.category} · {post.readTime}</p>
+            <p class="meta">Article</p>
             <h3><a href={`/posts/${post.slug}`}>{post.title}</a></h3>
-            <p class="excerpt">{post.excerpt}</p>
+            <p class="excerpt">{post.summary}</p>
             <div class="article-footer">
-              <time datetime={post.date}>
-                {new Date(`${post.date}T12:00:00`).toLocaleDateString('en-GB', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                })}
+              <time datetime={new Date(post.created_at).toISOString()}>
+                {formatDate(post.created_at)}
               </time>
               <a class="read-link" href={`/posts/${post.slug}`}>
                 Read article <span aria-hidden="true">→</span>
