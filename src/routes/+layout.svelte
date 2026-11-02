@@ -7,35 +7,7 @@
   /** @type {{ children: import('svelte').Snippet, data: { user: { id: string, username: string } | null } }} */
   let { children, data } = $props();
   let menuOpen = $state(false);
-  let trailsOpen = $state(false);
-  /** @type {HTMLDivElement | undefined} */
-  let trailMenuElement;
-  /** @type {ReturnType<typeof setTimeout> | undefined} */
-  let trailCloseTimer;
-
-  function cancelTrailClose() {
-    clearTimeout(trailCloseTimer);
-  }
-
-  function scheduleTrailClose() {
-    cancelTrailClose();
-    trailCloseTimer = setTimeout(() => (trailsOpen = false), 250);
-  }
-
-  /** @param {MouseEvent} event */
-  function closeTrailsOnOutsideClick(event) {
-    if (event.target instanceof Node && !trailMenuElement?.contains(event.target)) {
-      trailsOpen = false;
-    }
-  }
-
-  /** @param {KeyboardEvent} event */
-  function closeTrailsOnEscape(event) {
-    if (event.key === 'Escape') trailsOpen = false;
-  }
 </script>
-
-<svelte:window onclick={closeTrailsOnOutsideClick} onkeydown={closeTrailsOnEscape} />
 
 <svelte:head>
   <link rel="icon" href={favicon} />
@@ -73,29 +45,7 @@
       <nav id="main-navigation" class:open={menuOpen} aria-label="Main navigation">
         <a href="/about" onclick={() => (menuOpen = false)}>About the park</a>
         <a href="/community" onclick={() => (menuOpen = false)}>Community</a>
-        <div
-          class="trail-menu"
-          role="group"
-          aria-label="Trail navigation"
-          bind:this={trailMenuElement}
-          onmouseenter={cancelTrailClose}
-          onmouseleave={scheduleTrailClose}
-        >
-          <button
-            class="trail-menu-button"
-            type="button"
-            aria-expanded={trailsOpen}
-            aria-controls="trail-links"
-            onclick={() => (trailsOpen = !trailsOpen)}
-          >
-            Trails
-          </button>
-          <div id="trail-links" class:open={trailsOpen} class="trail-links">
-            <a href="/posts/bjorkslingan" onclick={() => { trailsOpen = false; menuOpen = false; }}>Björkslingan</a>
-            <a href="/posts/alvstigen" onclick={() => { trailsOpen = false; menuOpen = false; }}>Älvstigen</a>
-            <a href="/posts/krakberget" onclick={() => { trailsOpen = false; menuOpen = false; }}>Kråkberget</a>
-          </div>
-        </div>
+        <a href="/trails" onclick={() => (menuOpen = false)}>Trails</a>
         <div class="header-auth"><AuthControls user={data.user} /></div>
       </nav>
     </div>
@@ -125,6 +75,12 @@
     box-sizing: border-box;
   }
 
+  :global(html),
+  :global(body) {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
   :global(:root) {
     --color-page: #f3efe6;
     --color-surface: #fbf8f0;
@@ -148,6 +104,10 @@
     --color-medium-text: #73551d;
     --color-hard-bg: #eedbd7;
     --color-hard-text: #853b35;
+    --color-very-easy-bg: #dcebd7;
+    --color-very-easy-text: #416443;
+    --color-extreme-bg: #3b3048;
+    --color-extreme-text: #fbf8f0;
   }
 
   :global(body) {
@@ -309,21 +269,8 @@
     gap: 28px;
   }
 
-  nav > a,
-  .trail-menu-button {
+  nav > a {
     color: var(--color-text-muted);
-    cursor: pointer;
-    font-size: 1.125rem;
-    font-weight: 550;
-  }
-
-  .trail-menu-button {
-    border: none;
-    padding: 0;
-    background: none;
-    font: inherit;
-    color: var(--color-text-muted);
-    cursor: pointer;
     font-size: 1.125rem;
     font-weight: 550;
   }
@@ -334,60 +281,11 @@
     font-size: 1.125rem;
   }
 
-  .trail-menu-button::after {
-    content: '⌄';
-    margin-left: 7px;
-  }
-
   nav > a:hover,
-  .trail-menu-button:hover,
-  .trail-links a:hover {
+  .header-auth :global(a:hover) {
     color: var(--color-heading);
     text-decoration: underline;
     text-underline-offset: 4px;
-  }
-
-  .trail-menu {
-    position: relative;
-  }
-
-  .trail-menu::after {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    left: 0;
-    height: 12px;
-    content: '';
-  }
-
-  .trail-links {
-    position: absolute;
-    z-index: 101;
-    top: calc(100% + 12px);
-    left: -16px;
-    display: none;
-    min-width: 190px;
-    gap: 2px;
-    padding: 8px;
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    background: var(--color-surface);
-    box-shadow: 0 8px 20px var(--color-shadow);
-    color: var(--color-text);
-  }
-
-  .trail-links.open {
-    display: grid;
-  }
-
-  .trail-links a {
-    padding: 8px;
-    border-radius: 7px;
-    font-size: 1rem;
-  }
-
-  .trail-links a:hover {
-    background: var(--color-surface-muted);
   }
 
   .header-auth {
@@ -419,9 +317,9 @@
     }
 
     .header-inner {
-      min-height: 96px;
+      min-height: 0;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 8px 12px;
       padding: 12px 18px;
     }
 
@@ -447,19 +345,25 @@
     }
 
     .brand {
-      max-width: calc(100% - 105px);
+      min-width: 0;
+      max-width: none;
+      flex: 1 1 0;
     }
 
     .brand-name {
-      font-size: 2.8rem;
+      font-size: clamp(1.9rem, 8vw, 2.35rem);
     }
 
     .brand-tagline {
-      font-size: 0.9rem;
+      max-width: 100%;
+      font-size: 0.78rem;
+      line-height: 1.3;
     }
 
     .menu-toggle {
       display: inline-flex;
+      min-height: 44px;
+      flex: 0 0 auto;
     }
 
     nav {
@@ -468,37 +372,41 @@
       align-items: stretch;
       flex-direction: column;
       gap: 0;
-      padding: 4px 0 8px;
+      padding: 8px 0 10px;
     }
 
     nav.open {
       display: flex;
     }
 
-    nav > a,
-    .trail-menu-button {
-      padding: 10px 0;
-    }
-
-    .trail-menu {
-      width: 100%;
-    }
-
-    .trail-menu::after {
-      display: none;
-    }
-
-    .trail-links {
-      position: static;
-      margin: 0 0 8px;
-      box-shadow: none;
+    nav > a {
+      display: flex;
+      min-height: 44px;
+      align-items: center;
+      padding: 8px 0;
     }
 
     .header-auth {
+      display: flex;
+      min-height: 48px;
+      align-items: center;
+      flex-wrap: wrap;
       border-top: 1px solid var(--color-header-divider);
       border-left: 0;
       margin-top: 8px;
       padding: 14px 0 0;
+    }
+
+    .header-auth :global(.auth-links) {
+      flex-wrap: wrap;
+      gap: 8px 20px;
+    }
+
+    .header-auth :global(a),
+    .header-auth :global(button) {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
     }
   }
 
@@ -507,7 +415,63 @@
       align-items: flex-start;
       flex-direction: column;
       gap: 2px;
-      font-size: 0.9rem;
+      padding-right: 18px;
+      padding-left: 18px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .home-button {
+      max-width: calc(100vw - 36px);
+    }
+
+    .landscape-background {
+      height: 190px;
+    }
+
+    .landscape-background :global(use[href="#pine"]),
+    .landscape-background :global(use[href="#birch"]) {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      scale: 0.72;
+    }
+
+    .home-button {
+      top: 88px;
+    }
+
+    .site-shell:has(nav.open) .home-button {
+      visibility: hidden;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .header-inner {
+      padding-right: 14px;
+      padding-left: 14px;
+    }
+
+    .brand-tagline {
+      font-size: 0.8rem;
+    }
+
+    .menu-toggle {
+      gap: 6px;
+      padding: 7px 9px;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .brand-name {
+      font-size: 1.9rem;
+    }
+
+    .brand-tagline {
+      font-size: 0.82rem;
+    }
+
+    .menu-toggle {
+      min-height: 44px;
     }
   }
 </style>

@@ -37,7 +37,7 @@
     </form>
   {:else}
     <p class="signin-prompt">
-      <a href="/login">Sign in</a> or <a href="/signup">create an account</a> to start a community discussion.
+      <a href="/login">Sign in</a> to share a tip.
     </p>
   {/if}
 
@@ -255,7 +255,32 @@
 
   @media (max-width: 600px) {
     .content {
-      padding: 40px 18px 56px;
+      padding: 38px 16px 56px;
+    }
+
+    .intro,
+    .post-meta,
+    .tip-meta,
+    .tip-card > p:first-child,
+    .signin-prompt,
+    .empty-state {
+      font-size: 1rem;
+    }
+
+    .post-form {
+      padding: 16px;
+    }
+
+    .post-form input,
+    .post-form textarea,
+    .post-form button {
+      width: 100%;
+      min-height: 48px;
+      font-size: 1rem;
+    }
+
+    .post-form button {
+      justify-self: stretch;
     }
 
     .post-meta,

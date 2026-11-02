@@ -11,7 +11,6 @@
 {:else}
   <div class="auth-links">
     <a href="/login">Sign in</a>
-    <a href="/signup">Sign up</a>
   </div>
 {/if}
 

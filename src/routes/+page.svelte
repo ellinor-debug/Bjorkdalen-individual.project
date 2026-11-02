@@ -1,9 +1,18 @@
 <script>
+  import { goto } from '$app/navigation';
   import WeatherIcon from '../lib/components/WeatherIcon.svelte';
 
   let { data } = $props();
 
-  const trailNames = ['Björkslingan', 'Älvstigen', 'Kråkberget'];
+  const difficultyLevels = [
+    { value: 'very-easy', label: 'Very easy' },
+    { value: 'easy', label: 'Easy' },
+    { value: 'medium', label: 'Medium' },
+    { value: 'hard', label: 'Hard' },
+    { value: 'extreme', label: 'Extremely difficult' }
+  ];
+  /** @type {string[]} */
+  let selectedDifficulties = $state([]);
   /** @type {Record<number, string>} */
   const weatherDescriptions = {
     1: 'Sunny',
@@ -40,24 +49,20 @@
     return code === null ? 'Forecast unavailable' : weatherDescriptions[code] ?? 'Cloudy';
   }
 
-  /** @param {string} value */
-  const normalize = (value) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-
-  /** @param {string} body */
-  function trailDetails(body) {
-    const firstLine = body.split('\n')[0] ?? '';
-    const match = firstLine.match(/^Length:\s*(.+?)\s*·\s*Difficulty:\s*(Easy|Medium|Hard)$/);
-    return { length: match?.[1] ?? null, difficulty: match?.[2] ?? null };
+  /** @param {string} difficulty */
+  function toggleDifficulty(difficulty) {
+    selectedDifficulties = selectedDifficulties.includes(difficulty)
+      ? selectedDifficulties.filter((value) => value !== difficulty)
+      : [...selectedDifficulties, difficulty];
   }
 
-  const trails = $derived.by(() => {
-    const selected = trailNames
-      .map((name) => data.posts.find((post) => normalize(post.title) === normalize(name)))
-      .filter((post) => post !== undefined);
-
-    const remaining = data.posts.filter((post) => !selected.includes(post));
-    return [...selected, ...remaining].slice(0, trailNames.length);
-  });
+  async function showTrails() {
+    const selected = difficultyLevels
+      .filter(({ value }) => selectedDifficulties.includes(value))
+      .map(({ value }) => value);
+    const query = selected.length ? `?difficulty=${selected.join(',')}` : '';
+    await goto(`/trails${query}`);
+  }
 </script>
 
 <svelte:head>
@@ -144,24 +149,23 @@
     <div class="section-title">
       <p class="eyebrow">Take the long way round</p>
       <h2 id="trails-title">Find your trail</h2>
+      <p class="difficulty-hint">Choose one or more difficulty levels to find your kind of adventure.</p>
     </div>
-    <div class="trail-grid">
-      {#each trails as post (post.slug)}
-        {@const details = trailDetails(post.body)}
-        <a class="trail-card" href={`/posts/${post.slug}`}>
-          <p class="trail-label">Björkdalen National Park</p>
-          <h3>{post.title}</h3>
-          <p class="summary">{post.summary}</p>
-          <div class="trail-facts">
-            {#if details.length}<span>{details.length}</span>{/if}
-            {#if details.difficulty}
-              <span class={`difficulty ${details.difficulty.toLowerCase()}`}>{details.difficulty}</span>
-            {/if}
-          </div>
-          <span class="trail-link">Explore trail <span aria-hidden="true">→</span></span>
-        </a>
+    <div class="difficulty-grid" aria-label="Select trail difficulty">
+      {#each difficultyLevels as level (level.value)}
+        <button
+          class={`difficulty-box ${level.value}`}
+          class:selected={selectedDifficulties.includes(level.value)}
+          type="button"
+          aria-pressed={selectedDifficulties.includes(level.value)}
+          onclick={() => toggleDifficulty(level.value)}
+        >
+          <strong>{level.label}</strong>
+          <span>{data.posts.filter((post) => post.difficulty === level.value).length} trails</span>
+        </button>
       {/each}
     </div>
+    <button class="show-trails" type="button" onclick={showTrails}>Show trails <span aria-hidden="true">→</span></button>
   </section>
 </main>
 
@@ -226,8 +230,7 @@
     line-height: 1.55;
   }
 
-  .panel,
-  .trail-card {
+  .panel {
     border: 1px solid var(--color-border);
     border-radius: 18px;
     background: var(--color-surface);
@@ -304,8 +307,13 @@
   .timeline-heading {
     display: flex;
     align-items: baseline;
+    justify-content: space-between;
     margin-top: 4px;
     margin-bottom: 0;
+  }
+
+  .timeline-heading::after {
+    display: none;
   }
 
   .timeline-heading h3 {
@@ -325,6 +333,10 @@
     padding: 5px 0 8px;
     scrollbar-color: var(--color-accent) var(--color-surface-muted);
     scrollbar-width: thin;
+  }
+
+  .hourly-forecast::after {
+    display: none;
   }
 
   .hour {
@@ -435,92 +447,113 @@
     font-size: clamp(1.75rem, 2vw, 1.75rem);
   }
 
-  .trail-grid {
+  .difficulty-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
   }
 
-  .trail-card {
+  .difficulty-box {
     display: flex;
-    min-height: 180px;
+    min-width: 0;
+    min-height: 112px;
     flex-direction: column;
-    padding: 15px 17px;
-    color: inherit;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 7px;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
     transition:
       transform 160ms ease,
-      box-shadow 160ms ease,
-      border-color 160ms ease;
+      box-shadow 160ms ease;
   }
 
-  .trail-card:hover {
+  .difficulty-box:hover {
     transform: translateY(-3px);
-    border-color: var(--color-accent);
     box-shadow: 0 10px 24px var(--color-shadow);
   }
 
-  .trail-card:focus-visible {
+  .difficulty-box:focus-visible {
     outline: 3px solid var(--color-focus);
     outline-offset: 4px;
   }
 
-  .trail-label {
-    margin-bottom: 6px;
-    font-size: 0.72rem;
+  .difficulty-box.selected {
+    border-color: var(--color-heading);
+    box-shadow: 0 0 0 2px var(--color-page), 0 0 0 4px var(--color-heading);
   }
 
-  .trail-card h3 {
-    margin-bottom: 5px;
-    color: var(--color-heading);
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 1.75rem;
-    line-height: 1.15;
-  }
-
-  .summary {
-    margin-bottom: 10px;
-    color: var(--color-text-muted);
-    font-size: 1.1rem;
-    line-height: 1.45;
-  }
-
-  .trail-facts {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: auto;
-    color: var(--color-text-muted);
+  .difficulty-box strong {
     font-size: 1.05rem;
+    line-height: 1.25;
   }
 
-  .difficulty {
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 1rem;
-    font-weight: 700;
+  .difficulty-box span {
+    font-size: 0.95rem;
+    opacity: 0.9;
   }
 
-  .difficulty.easy {
+  .difficulty-box.very-easy {
+    background: var(--color-very-easy-bg);
+    color: var(--color-very-easy-text);
+  }
+
+  .difficulty-box.easy {
     background: var(--color-easy-bg);
     color: var(--color-easy-text);
   }
 
-  .difficulty.medium {
+  .difficulty-box.medium {
     background: var(--color-medium-bg);
     color: var(--color-medium-text);
   }
 
-  .difficulty.hard {
+  .difficulty-box.hard {
     background: var(--color-hard-bg);
     color: var(--color-hard-text);
   }
 
-  .trail-link {
-    align-self: flex-start;
-    margin-top: 8px;
-    font-size: 0.9rem;
-    color: var(--color-accent);
+  .difficulty-box.extreme {
+    background: var(--color-extreme-bg);
+    color: var(--color-extreme-text);
+  }
+
+  .difficulty-hint {
+    margin: 8px 0 0;
+    color: var(--color-text-muted);
+  }
+
+  .show-trails {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 20px;
+    background: var(--color-accent);
+    color: var(--color-white);
+    cursor: pointer;
+    font: inherit;
     font-weight: 700;
+  }
+
+  .show-trails:hover {
+    background: var(--color-accent-hover);
+  }
+
+  .show-trails:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .show-trails span {
+    font-size: 1.15rem;
+    line-height: 1;
   }
 
   @media (max-width: 760px) {
@@ -537,19 +570,37 @@
       padding: 0;
     }
 
-    .trail-grid {
-      grid-template-columns: 1fr;
+    .difficulty-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .difficulty-box:last-child {
+      grid-column: 1 / -1;
     }
   }
 
   @media (max-width: 520px) {
+    .page-content {
+      padding-right: 16px;
+      padding-left: 16px;
+    }
+
     .weather {
-      padding: 18px;
+      padding: 16px;
     }
 
     .hourly-forecast {
       justify-content: flex-start;
       min-height: 80px;
+      gap: 18px;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .timeline-heading::after {
+      color: var(--color-text-muted);
+      content: 'Swipe to see more →';
+      font-size: 0.75rem;
     }
 
     .trails {
@@ -557,7 +608,39 @@
     }
 
     .daily-forecast {
-      gap: 8px;
+      gap: 6px;
+    }
+
+    .daily-icon {
+      font-size: 34px;
+    }
+
+    .daily {
+      gap: 3px;
+      padding: 7px 3px;
+      font-size: 0.82rem;
+    }
+
+    .daily strong {
+      gap: 4px;
+      font-size: 0.85rem;
+    }
+
+    .difficulty-box {
+      min-height: 94px;
+      padding: 12px;
+    }
+
+    .difficulty-box:last-child {
+      grid-column: auto;
+    }
+
+    .difficulty-box strong {
+      font-size: 0.98rem;
+    }
+
+    .difficulty-box span {
+      font-size: 0.9rem;
     }
   }
 
@@ -567,12 +650,28 @@
     }
 
     .weather-heading {
-      align-items: flex-start;
-      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+    }
+
+    .current-weather {
+      gap: 5px;
+      margin-right: 0;
+      margin-left: auto;
+    }
+
+    .current-icon {
+      font-size: 52px;
+    }
+
+    .current-description {
+      max-width: 120px;
+      font-size: 0.78rem;
     }
 
     .current-temperature {
-      font-size: 1.9rem;
+      font-size: 1.7rem;
     }
 
     .current-temperature span {
@@ -583,18 +682,5 @@
       font-size: 1.25rem;
     }
 
-    .daily-forecast {
-      gap: 5px;
-    }
-
-    .daily {
-      padding: 10px 4px;
-      font-size: 0.78rem;
-    }
-
-    .daily strong {
-      gap: 5px;
-      font-size: 0.9rem;
-    }
   }
 </style>

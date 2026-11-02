@@ -246,7 +246,7 @@ export async function load({ fetch }) {
   const sql = getDatabase();
   const [posts, weather] = await Promise.all([
     sql`
-      SELECT slug, title, summary, body, created_at
+      SELECT slug, title, summary, body, difficulty, length_km, created_at
       FROM posts
       WHERE type = 'trail'
       ORDER BY created_at DESC

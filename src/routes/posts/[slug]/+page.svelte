@@ -3,16 +3,21 @@
   /** @type {{ error?: string, body?: string } | null} */
   let actionForm = $derived(form);
 
-  /** @param {string} body */
-  function trailDetails(body) {
-    const [firstLine, ...rest] = body.split('\n');
-    const match = firstLine.match(/^Length:\s*(.+?)\s*·\s*Difficulty:\s*(Easy|Medium|Hard)$/);
+  /** @param {string | null} body */
+  function trailDescription(body) {
+    const text = body ?? '';
+    return text.replace(/^Length:\s*.+?\s*·\s*Difficulty:\s*.+\r?\n?/i, '').trim();
+  }
 
-    return {
-      length: match?.[1] ?? null,
-      difficulty: match?.[2] ?? null,
-      description: match ? rest.join('\n').trim() : body
-    };
+  /** @param {string} difficulty */
+  function difficultyLabel(difficulty) {
+    return ({
+      'very-easy': 'Very easy',
+      easy: 'Easy',
+      medium: 'Medium',
+      hard: 'Hard',
+      extreme: 'Extremely difficult'
+    })[difficulty] ?? difficulty;
   }
 
   /** @param {string | Date} date */
@@ -24,7 +29,7 @@
     });
   }
 
-  const details = $derived(trailDetails(data.post.body));
+  const description = $derived(trailDescription(data.post.body));
 </script>
 
 <svelte:head>
@@ -36,17 +41,15 @@
   <article class="trail">
     <p class="eyebrow">Dalarna · Sweden</p>
     <h1>{data.post.title}</h1>
-    <p class="excerpt">{data.post.summary}</p>
-
     <div class="trail-facts">
-      {#if details.length}<span>{details.length}</span>{/if}
-      {#if details.difficulty}
-        <span class={`difficulty ${details.difficulty.toLowerCase()}`}>{details.difficulty}</span>
+      {#if data.post.length_km !== null}<span>{data.post.length_km} km</span>{/if}
+      {#if data.post.difficulty}
+        <span class={`difficulty ${data.post.difficulty}`}>{difficultyLabel(data.post.difficulty)}</span>
       {/if}
     </div>
 
     <div class="trail-body">
-      {#each details.description.split(/\n\s*\n/) as paragraph}
+      {#each description.split(/\n\s*\n/) as paragraph}
         <p>{paragraph}</p>
       {/each}
     </div>
@@ -99,8 +102,7 @@
         </form>
       {:else}
         <p class="signin-prompt">
-          Sign in to share a tip.
-          <a href="/login">Sign in</a> or <a href="/signup">create an account</a>.
+          <a href="/login">Sign in</a> to share a tip.
         </p>
       {/if}
     </section>
@@ -177,6 +179,16 @@
   .difficulty.hard {
     background: var(--color-hard-bg);
     color: var(--color-hard-text);
+  }
+
+  .difficulty.very-easy {
+    background: var(--color-very-easy-bg);
+    color: var(--color-very-easy-text);
+  }
+
+  .difficulty.extreme {
+    background: var(--color-extreme-bg);
+    color: var(--color-extreme-text);
   }
 
   .trail-body {
@@ -324,7 +336,29 @@
 
   @media (max-width: 600px) {
     .content {
-      padding: 38px 18px 56px;
+      padding: 38px 16px 56px;
+    }
+
+    .trail-body p,
+    .comment p,
+    .empty-state,
+    .signin-prompt {
+      font-size: 1rem;
+    }
+
+    .tip-form {
+      padding: 16px;
+    }
+
+    .tip-form textarea,
+    .tip-form button {
+      width: 100%;
+      min-height: 48px;
+      font-size: 1rem;
+    }
+
+    .tip-form button {
+      justify-self: stretch;
     }
 
     .comment-heading {
@@ -333,8 +367,5 @@
       gap: 2px;
     }
 
-    .tip-form {
-      padding: 18px;
-    }
   }
 </style>

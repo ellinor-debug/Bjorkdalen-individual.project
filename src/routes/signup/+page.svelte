@@ -46,6 +46,7 @@
     />
 
     <button type="submit">Create account</button>
+    <p class="login-link">Already have an account? <a href="/login">Sign in</a></p>
   </form>
 </main>
 
@@ -113,5 +114,21 @@
   .error {
     margin: 0;
     color: var(--color-danger);
+  }
+
+  .login-link {
+    margin: 0;
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+
+  .login-link a {
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+
+  .login-link a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 </style>

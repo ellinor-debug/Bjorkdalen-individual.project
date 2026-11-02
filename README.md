@@ -10,6 +10,11 @@ are in `src/routes/+layout.svelte`. The shared handwritten wordmark and decorati
 watercolour landscape are also rendered from the layout; the illustration lives in
 `src/lib/components/Landscape.svelte`.
 
+The `/trails` page lists all trail posts and supports multi-select difficulty filters
+stored in the `difficulty` query parameter (for example, `/trails?difficulty=easy,medium`).
+The SQL to populate `difficulty` and `length_km` for all eight trails is in
+[`scripts/trails.sql`](./scripts/trails.sql).
+
 ## Park weather forecast
 
 The front page requests SMHI's point forecast from the server at

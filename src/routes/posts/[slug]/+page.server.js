@@ -5,7 +5,7 @@ import { getDatabase } from '../../../lib/server/db.js';
 export async function load({ params, locals }) {
   const sql = getDatabase();
   const [post] = await sql`
-    SELECT id, slug, title, body, summary, created_at
+    SELECT id, slug, title, body, summary, difficulty, length_km, created_at
     FROM posts
     WHERE slug = ${params.slug}
       AND type = 'trail'

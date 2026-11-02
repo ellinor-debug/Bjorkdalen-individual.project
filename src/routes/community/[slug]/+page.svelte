@@ -59,7 +59,7 @@
       </form>
     {:else}
       <p class="signin-prompt">
-        <a href="/login">Sign in</a> or <a href="/signup">create an account</a> to reply.
+        <a href="/login">Sign in</a> to share a tip.
       </p>
     {/if}
   </section>
@@ -231,7 +231,32 @@
 
   @media (max-width: 600px) {
     .content {
-      padding: 38px 18px 56px;
+      padding: 38px 16px 56px;
+    }
+
+    .community-post,
+    .reply,
+    .post-body,
+    .reply > p,
+    .signin-prompt,
+    .empty-state {
+      font-size: 1rem;
+    }
+
+    .community-post,
+    .reply-form {
+      padding: 16px;
+    }
+
+    .reply-form textarea,
+    .reply-form button {
+      width: 100%;
+      min-height: 48px;
+      font-size: 1rem;
+    }
+
+    .reply-form button {
+      justify-self: stretch;
     }
 
     .post-meta,

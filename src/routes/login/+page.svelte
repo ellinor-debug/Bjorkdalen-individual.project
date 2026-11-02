@@ -28,7 +28,7 @@
     />
 
     <button type="submit">Sign in</button>
-    <p class="signup-link">New here? <a href="/signup">Create an account</a>.</p>
+    <p class="signup-link">New here? <a href="/signup">Create an account</a></p>
   </form>
 </main>
 
