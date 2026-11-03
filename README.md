@@ -85,7 +85,7 @@ separately. Do not send personal, confidential or otherwise private information 
 
 ### Prerequisites
 
-- Node.js 20 or newer
+- Node.js 20.19 or newer (or a newer supported major version)
 - A Neon account and PostgreSQL database
 - An OpenRouter API key for the AI draft feature
 
@@ -99,6 +99,28 @@ npm run dev
 
 Fill in the values in `.env` before using the database-backed pages or AI draft feature. Set up the
 database as described below before starting the site.
+
+## Deploying to Vercel
+
+The project uses the SvelteKit Vercel adapter. To deploy it:
+
+1. Push the project to a Git provider supported by Vercel.
+2. In Vercel, choose **Add New Project** and import the repository. Vercel should detect SvelteKit;
+   leave the framework preset, install command (`npm install`) and build command (`npm run build`)
+   at their detected defaults. Do not set a static output directory.
+3. In the project's Vercel settings, add `DATABASE_URL`, `SESSION_SECRET` and
+   `OPENROUTER_API_KEY` under **Environment Variables** for the environments you intend to use
+   (Production, and Preview if needed). Use the actual private values there; do not put them in
+   source files or commit them.
+4. Ensure the Neon database already has the required tables and data. Apply `scripts/trails.sql`
+   after provisioning the base schema, then deploy or redeploy the project.
+5. Open the Vercel deployment URL and check the home page, sign-in, trails and community pages.
+   The AI draft feature also requires a valid OpenRouter key.
+
+Vercel builds the app as serverless functions plus static assets. Neon is accessed from server-side
+code using its serverless driver; database and AI credentials are not sent to the browser. The
+repository does not include SQL to create the full base schema, so an empty Neon database is not
+ready for deployment until that schema has been provisioned.
 
 ## Database set-up
 
