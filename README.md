@@ -3,8 +3,7 @@
 A website for a fictional national park in Dalarna, Sweden. Built for the individual project in
 Programming & Methods (ACE2627) at Berghs.
 
-Live site: [VERCEL LINK](https://your-project.vercel.app)  
-Presentation slides: [presentation/FILE NAME.pdf](./presentation/FILE%20NAME.pdf)
+Live site: [[VERCEL LINK](https://your-project.vercel.app)](https://bjorkdalen-individual-project-povi.vercel.app/)  
 
 ## Features
 
